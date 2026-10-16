@@ -1,19 +1,34 @@
 // swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
+//
+// Modified by the Spiral authors, 2026: Spiral's version, checksum and release
+// URL, and a MatrixSDKFFI.xcframework beside this file used before the download.
+import Foundation
 import PackageDescription
-let checksum = "b2aa7c943b183371c2da683db6edcb62178603cc4355f24e12f08e46befff5eb"
-let version = "26.07.28"
-let url = "https://github.com/element-hq/matrix-rust-components-swift/releases/download/\(version)/MatrixSDKFFI.xcframework.zip"
+
+let checksum = "bab24ce8f8e85451f25d353550b54e8a62d7f3343a6ecac13570f705f74d47db"
+let version = "26.07.28-spiral.31"
+let releaseBaseURL = "https://github.com/spiral-group/matrix-rust-components-swift/releases/download"
+let url = "\(releaseBaseURL)/\(version)/MatrixSDKFFI.xcframework.zip"
+let localFrameworkURL = URL(fileURLWithPath: #filePath)
+    .deletingLastPathComponent()
+    .appendingPathComponent("MatrixSDKFFI.xcframework")
+let matrixSDKFFITarget: Target = if FileManager.default.fileExists(atPath: localFrameworkURL.path) {
+    .binaryTarget(name: "MatrixSDKFFI", path: "MatrixSDKFFI.xcframework")
+} else {
+    .binaryTarget(name: "MatrixSDKFFI", url: url, checksum: checksum)
+}
+
 let package = Package(
     name: "MatrixRustSDK",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
     ],
     products: [
         .library(name: "MatrixRustSDK", type: .dynamic, targets: ["MatrixRustSDK"]),
     ],
     targets: [
-        .binaryTarget(name: "MatrixSDKFFI", url: url, checksum: checksum),
-        .target(name: "MatrixRustSDK", dependencies: [.target(name: "MatrixSDKFFI")])
+        matrixSDKFFITarget,
+        .target(name: "MatrixRustSDK", dependencies: [.target(name: "MatrixSDKFFI")]),
     ]
 )

@@ -1,0 +1,22 @@
+matrix-rust-components-swift, Spiral's fork
+Copyright 2026 the Spiral authors.
+
+"The Spiral authors" is Andrii Panasiuk, the individual developer who
+publishes Spiral and holds the copyright in Spiral's code. Spiral is the
+product's name, not a company.
+
+Source requests: support@spiral.md
+
+This repository is a modified version of Element's
+matrix-rust-components-swift
+(https://github.com/element-hq/matrix-rust-components-swift), licensed under
+the Apache License, Version 2.0 (LICENSE).
+
+The Spiral authors modified it in 2026. Their changes are licensed under the
+Apache License, Version 2.0, too. They sit on top of the upstream tag
+26.07.28, so `git diff 26.07.28` lists every file they changed. Every
+upstream file they changed by hand says so near its top ("Modified by the
+Spiral authors, 2026: ..."), except .gitignore (one more ignored build output)
+and Sources/MatrixRustSDK/matrix_sdk_ffi.swift, which is generated.
+Sources/MatrixRustSDK and the MatrixSDKFFI framework are generated from
+Spiral's fork of matrix-rust-sdk; PROVENANCE.json names the exact commit.

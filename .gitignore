@@ -7,3 +7,4 @@ DerivedData/
 .swiftpm
 Package.resolved
 MatrixSDKFFI.xcframework.zip
+MatrixSDKFFI.xcframework
