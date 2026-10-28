@@ -14,7 +14,7 @@ the Apache License, Version 2.0 (LICENSE).
 
 The Spiral authors modified it in 2026. Their changes are licensed under the
 Apache License, Version 2.0, too. They sit on top of the upstream tag
-26.07.28, so `git diff 26.07.28` lists every file they changed. Every
+26.10.24, so `git diff 26.10.24` lists every file they changed. Every
 upstream file they changed by hand says so near its top ("Modified by the
 Spiral authors, 2026: ..."), except .gitignore (one more ignored build output)
 and Sources/MatrixRustSDK/matrix_sdk_ffi.swift, which is generated.
