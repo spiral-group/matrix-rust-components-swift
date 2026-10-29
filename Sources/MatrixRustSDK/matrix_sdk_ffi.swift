@@ -1806,6 +1806,43 @@ public protocol ClientProtocol: AnyObject, Sendable {
      */
     func getUserPresence(userId: String) async throws  -> UserPresence
     
+    /**
+     * Whether the homeserver lets this user set the profile field `field`
+     * (the `m.profile_fields` capability: `enabled`, then `allowed`, then
+     * `disallowed`).
+     *
+     * Unlike `HomeserverCapabilities::extended_profile_fields`, this keeps the
+     * difference between an absent `allowed` list (any field) and an empty
+     * one (none).
+     */
+    func canSetProfileField(field: String) async throws  -> Bool
+    
+    /**
+     * `DELETE /_matrix/client/v3/profile/{ownUserId}/{field}`.
+     */
+    func deleteOwnProfileField(field: String) async throws 
+    
+    /**
+     * `GET /_matrix/client/v3/profile/{ownUserId}/{field}`, as a string.
+     *
+     * `None` only when the field is not set: the server's `404 M_NOT_FOUND`
+     * (for the own user it can only mean the field) or an absent or `null`
+     * value. Every other failure is an error, and so is a value that is not
+     * a string — a caller must not mistake either for "no value" and
+     * overwrite it.
+     */
+    func ownProfileField(field: String) async throws  -> String?
+    
+    /**
+     * `PUT /_matrix/client/v3/profile/{ownUserId}/{field}` with a string
+     * value.
+     *
+     * Only for custom (namespaced) fields; the fields with typed values
+     * (`displayname`, `avatar_url`, `m.tz`) have their own setters and are
+     * refused here.
+     */
+    func setOwnProfileField(field: String, value: String) async throws 
+    
 }
 open class Client: ClientProtocol, @unchecked Sendable {
     fileprivate let handle: UInt64
@@ -4407,6 +4444,99 @@ open func getUserPresence(userId: String)async throws  -> UserPresence  {
             completeFunc: ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer,
             freeFunc: ffi_matrix_sdk_ffi_rust_future_free_rust_buffer,
             liftFunc: FfiConverterTypeUserPresence_lift,
+            errorHandler: FfiConverterTypeClientError_lift
+        )
+}
+    
+    /**
+     * Whether the homeserver lets this user set the profile field `field`
+     * (the `m.profile_fields` capability: `enabled`, then `allowed`, then
+     * `disallowed`).
+     *
+     * Unlike `HomeserverCapabilities::extended_profile_fields`, this keeps the
+     * difference between an absent `allowed` list (any field) and an empty
+     * one (none).
+     */
+open func canSetProfileField(field: String)async throws  -> Bool  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_matrix_sdk_ffi_fn_method_client_can_set_profile_field(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(field)
+                )
+            },
+            pollFunc: ffi_matrix_sdk_ffi_rust_future_poll_i8,
+            completeFunc: ffi_matrix_sdk_ffi_rust_future_complete_i8,
+            freeFunc: ffi_matrix_sdk_ffi_rust_future_free_i8,
+            liftFunc: FfiConverterBool.lift,
+            errorHandler: FfiConverterTypeClientError_lift
+        )
+}
+    
+    /**
+     * `DELETE /_matrix/client/v3/profile/{ownUserId}/{field}`.
+     */
+open func deleteOwnProfileField(field: String)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_matrix_sdk_ffi_fn_method_client_delete_own_profile_field(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(field)
+                )
+            },
+            pollFunc: ffi_matrix_sdk_ffi_rust_future_poll_void,
+            completeFunc: ffi_matrix_sdk_ffi_rust_future_complete_void,
+            freeFunc: ffi_matrix_sdk_ffi_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeClientError_lift
+        )
+}
+    
+    /**
+     * `GET /_matrix/client/v3/profile/{ownUserId}/{field}`, as a string.
+     *
+     * `None` only when the field is not set: the server's `404 M_NOT_FOUND`
+     * (for the own user it can only mean the field) or an absent or `null`
+     * value. Every other failure is an error, and so is a value that is not
+     * a string — a caller must not mistake either for "no value" and
+     * overwrite it.
+     */
+open func ownProfileField(field: String)async throws  -> String?  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_matrix_sdk_ffi_fn_method_client_own_profile_field(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(field)
+                )
+            },
+            pollFunc: ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer,
+            completeFunc: ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer,
+            freeFunc: ffi_matrix_sdk_ffi_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionString.lift,
+            errorHandler: FfiConverterTypeClientError_lift
+        )
+}
+    
+    /**
+     * `PUT /_matrix/client/v3/profile/{ownUserId}/{field}` with a string
+     * value.
+     *
+     * Only for custom (namespaced) fields; the fields with typed values
+     * (`displayname`, `avatar_url`, `m.tz`) have their own setters and are
+     * refused here.
+     */
+open func setOwnProfileField(field: String, value: String)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_matrix_sdk_ffi_fn_method_client_set_own_profile_field(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(field),FfiConverterString.lower(value)
+                )
+            },
+            pollFunc: ffi_matrix_sdk_ffi_rust_future_poll_void,
+            completeFunc: ffi_matrix_sdk_ffi_rust_future_complete_void,
+            freeFunc: ffi_matrix_sdk_ffi_rust_future_free_void,
+            liftFunc: { $0 },
             errorHandler: FfiConverterTypeClientError_lift
         )
 }
@@ -63505,6 +63635,18 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_matrix_sdk_ffi_checksum_method_client_get_user_presence() != 13545) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_matrix_sdk_ffi_checksum_method_client_can_set_profile_field() != 44976) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_matrix_sdk_ffi_checksum_method_client_delete_own_profile_field() != 9649) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_matrix_sdk_ffi_checksum_method_client_own_profile_field() != 15572) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_matrix_sdk_ffi_checksum_method_client_set_own_profile_field() != 14615) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_avatar() != 36643) {
