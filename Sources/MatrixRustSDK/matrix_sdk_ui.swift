@@ -1735,6 +1735,9 @@ public enum TimelineReadReceiptTracking: Equatable, Hashable {
     case allEvents
     /**
      * Track read receipts only for message-like events.
+     *
+     * A state event from another user isn't a read: it adds no implicit read
+     * receipt.
      */
     case messageLikeEvents
     /**
