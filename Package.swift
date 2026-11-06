@@ -6,8 +6,8 @@
 import Foundation
 import PackageDescription
 
-let checksum = "74b9a2411afb61a73beec00d5c97f73574a8ff220fcc192e76fa1786c214485a"
-let version = "26.10.29-spiral.2"
+let checksum = "05c56cda84a6f700ac8e154d7ade762ee9e283291f346e1c8257b169560b0053"
+let version = "26.10.29-spiral.3"
 let releaseBaseURL = "https://github.com/spiral-group/matrix-rust-components-swift/releases/download"
 let url = "\(releaseBaseURL)/\(version)/MatrixSDKFFI.xcframework.zip"
 let localFrameworkURL = URL(fileURLWithPath: #filePath)
