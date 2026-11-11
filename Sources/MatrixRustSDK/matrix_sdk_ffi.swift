@@ -8929,6 +8929,17 @@ public protocol MatrixRtcSessionProtocol: AnyObject, Sendable {
      */
     func updateCallIntent(callIntent: MatrixRtcCallIntent) async throws 
     
+    /**
+     * Update the language advertised by our live membership; `None` (or an
+     * empty string) removes it.
+     *
+     * Re-publishes the membership with everything else unchanged — expiry,
+     * transport, intent, the staged delayed leave — and sends nothing when
+     * the language is already the one published. Fails when not joined;
+     * the initial language goes in [`MatrixRtcJoinConfiguration::language`].
+     */
+    func updateLanguage(language: String?) async throws 
+    
 }
 /**
  * Our participation in the MatrixRTC session of a room.
@@ -9145,6 +9156,31 @@ open func updateCallIntent(callIntent: MatrixRtcCallIntent)async throws   {
             rustFutureFunc: {
                 uniffi_matrix_sdk_ffi_fn_method_matrixrtcsession_update_call_intent(
                         self.uniffiCloneHandle(),FfiConverterTypeMatrixRtcCallIntent_lower(callIntent)
+                )
+            },
+            pollFunc: ffi_matrix_sdk_ffi_rust_future_poll_void,
+            completeFunc: ffi_matrix_sdk_ffi_rust_future_complete_void,
+            freeFunc: ffi_matrix_sdk_ffi_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeClientError_lift
+        )
+}
+    
+    /**
+     * Update the language advertised by our live membership; `None` (or an
+     * empty string) removes it.
+     *
+     * Re-publishes the membership with everything else unchanged — expiry,
+     * transport, intent, the staged delayed leave — and sends nothing when
+     * the language is already the one published. Fails when not joined;
+     * the initial language goes in [`MatrixRtcJoinConfiguration::language`].
+     */
+open func updateLanguage(language: String?)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_matrix_sdk_ffi_fn_method_matrixrtcsession_update_language(
+                        self.uniffiCloneHandle(),FfiConverterOptionString.lower(language)
                 )
             },
             pollFunc: ffi_matrix_sdk_ffi_rust_future_poll_void,
@@ -25358,6 +25394,15 @@ public struct MatrixRtcJoinConfiguration: Equatable, Hashable {
      * Soft indication of whether the call starts as audio or video.
      */
     public var callIntent: MatrixRtcCallIntent?
+    /**
+     * The language this participant speaks and wants to hear, published in
+     * the membership verbatim (e.g. `"uk"`, `"zh-Hans"`, `"pt-BR"`; never
+     * case-folded). `None` or an empty string publishes no language.
+     *
+     * Membership state is not end-to-end encrypted: the homeserver and every
+     * room member can read it.
+     */
+    public var language: String?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
@@ -25373,11 +25418,20 @@ public struct MatrixRtcJoinConfiguration: Equatable, Hashable {
          */notificationType: MatrixRtcNotificationType?, 
         /**
          * Soft indication of whether the call starts as audio or video.
-         */callIntent: MatrixRtcCallIntent?) {
+         */callIntent: MatrixRtcCallIntent?, 
+        /**
+         * The language this participant speaks and wants to hear, published in
+         * the membership verbatim (e.g. `"uk"`, `"zh-Hans"`, `"pt-BR"`; never
+         * case-folded). `None` or an empty string publishes no language.
+         *
+         * Membership state is not end-to-end encrypted: the homeserver and every
+         * room member can read it.
+         */language: String? = nil) {
         self.membershipExpiryMs = membershipExpiryMs
         self.encryptMedia = encryptMedia
         self.notificationType = notificationType
         self.callIntent = callIntent
+        self.language = language
     }
 
     
@@ -25399,7 +25453,8 @@ public struct FfiConverterTypeMatrixRtcJoinConfiguration: FfiConverterRustBuffer
                 membershipExpiryMs: FfiConverterUInt64.read(from: &buf), 
                 encryptMedia: FfiConverterBool.read(from: &buf), 
                 notificationType: FfiConverterOptionTypeMatrixRtcNotificationType.read(from: &buf), 
-                callIntent: FfiConverterOptionTypeMatrixRtcCallIntent.read(from: &buf)
+                callIntent: FfiConverterOptionTypeMatrixRtcCallIntent.read(from: &buf), 
+                language: FfiConverterOptionString.read(from: &buf)
         )
     }
 
@@ -25408,6 +25463,7 @@ public struct FfiConverterTypeMatrixRtcJoinConfiguration: FfiConverterRustBuffer
         FfiConverterBool.write(value.encryptMedia, into: &buf)
         FfiConverterOptionTypeMatrixRtcNotificationType.write(value.notificationType, into: &buf)
         FfiConverterOptionTypeMatrixRtcCallIntent.write(value.callIntent, into: &buf)
+        FfiConverterOptionString.write(value.language, into: &buf)
     }
 }
 
@@ -25443,6 +25499,16 @@ public struct MatrixRtcMembership: Equatable, Hashable {
      * The identity this participant uses on the SFU.
      */
     public var identity: String
+    /**
+     * The language this participant published, exactly as published.
+     *
+     * `None` when they published none, or a value that is not a non-empty
+     * string. Any string is passed through unvalidated: the caller decides
+     * whether it names a language it knows. Only ever the participant's own
+     * claim — a membership published under somebody else's state key is not
+     * a participant at all.
+     */
+    public var language: String?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
@@ -25455,10 +25521,20 @@ public struct MatrixRtcMembership: Equatable, Hashable {
          */deviceId: String, 
         /**
          * The identity this participant uses on the SFU.
-         */identity: String) {
+         */identity: String, 
+        /**
+         * The language this participant published, exactly as published.
+         *
+         * `None` when they published none, or a value that is not a non-empty
+         * string. Any string is passed through unvalidated: the caller decides
+         * whether it names a language it knows. Only ever the participant's own
+         * claim — a membership published under somebody else's state key is not
+         * a participant at all.
+         */language: String? = nil) {
         self.userId = userId
         self.deviceId = deviceId
         self.identity = identity
+        self.language = language
     }
 
     
@@ -25479,7 +25555,8 @@ public struct FfiConverterTypeMatrixRtcMembership: FfiConverterRustBuffer {
             try MatrixRtcMembership(
                 userId: FfiConverterString.read(from: &buf), 
                 deviceId: FfiConverterString.read(from: &buf), 
-                identity: FfiConverterString.read(from: &buf)
+                identity: FfiConverterString.read(from: &buf), 
+                language: FfiConverterOptionString.read(from: &buf)
         )
     }
 
@@ -25487,6 +25564,7 @@ public struct FfiConverterTypeMatrixRtcMembership: FfiConverterRustBuffer {
         FfiConverterString.write(value.userId, into: &buf)
         FfiConverterString.write(value.deviceId, into: &buf)
         FfiConverterString.write(value.identity, into: &buf)
+        FfiConverterOptionString.write(value.language, into: &buf)
     }
 }
 
@@ -63935,6 +64013,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_matrix_sdk_ffi_checksum_method_matrixrtcsession_update_call_intent() != 14321) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_matrix_sdk_ffi_checksum_method_matrixrtcsession_update_language() != 48913) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 64274) {
