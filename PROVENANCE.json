@@ -1,8 +1,8 @@
 {
   "artifactName" : "MatrixSDKFFI.xcframework.zip",
-  "artifactSHA256" : "b18a0129d2505c58711fef8198559c17799a97fb6bde7fcbd58a4553a6fab781",
-  "packageVersion" : "26.10.29-spiral.6",
+  "artifactSHA256" : "c9b4e5b5fd6e8a038a95c64ae6d3b48d6e3bd9c9fce72e55c031f1555f2a2f65",
+  "packageVersion" : "26.10.29-spiral.7",
   "sourceBranch" : "spiral/main",
-  "sourceCommit" : "0f66125800a61f241be046528fae0324a893e0df",
+  "sourceCommit" : "c79e5b81e4da5aee3453c12bff20e1a6c2c46c13",
   "sourceUpstreamURL" : "https://github.com/spiral-group/matrix-rust-sdk.git"
 }
