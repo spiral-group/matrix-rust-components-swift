@@ -26,6 +26,9 @@ struct Release: AsyncParsableCommand {
     @Option(help: "The release asset base URL written to Package.swift. Required unless --local-only is used.")
     var releaseBaseURL: String?
 
+    @Flag(help: "Skips building the framework and uses the one already in the build directory.")
+    var skipBuild = false
+
     var packageDirectory = URL(fileURLWithPath: #file)
         .deletingLastPathComponent() // Release.swift
         .deletingLastPathComponent() // Sources
@@ -94,9 +97,13 @@ struct Release: AsyncParsableCommand {
 
         Log.info("Building \(branch) at \(commitHash)")
 
-        // unset fixes an issue where swift compilation prevents building for targets other than macOS
-        let cargoCommand = "cargo xtask swift build-framework --release --target aarch64-apple-ios --target aarch64-apple-ios-sim"
-        try Zsh.run(command: "unset SDKROOT && \(cargoCommand)", directory: buildDirectory)
+        if skipBuild {
+            Log.info("Skipping build for --skip-build")
+        } else {
+            // unset fixes an issue where swift compilation prevents building for targets other than macOS
+            let cargoCommand = "cargo xtask swift build-framework --release --target aarch64-apple-ios --target aarch64-apple-ios-sim"
+            try Zsh.run(command: "unset SDKROOT && \(cargoCommand)", directory: buildDirectory)
+        }
 
         return BuildProduct(sourceRepo: sourceRepo,
                             version: version,
